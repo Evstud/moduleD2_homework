@@ -1,0 +1,68 @@
+python3 manage.py makemigrations
+python3 manage.py migrate
+python3 manage.py shell
+
+>>> from news.models import *
+
+>>> user1 = User.objects.create_user(username='Petr', first_name='Petrov')
+>>> user2 = User.objects.create_user(username='Ivan', first_name='Ivanov')
+
+>>> Author.objects.create(userAuthor=user1)
+>>> Author.objects.create(userAuthor=user2)
+
+>>> Category.objects.create(catName='IT')
+>>> Category.objects.create(catName='Education')
+>>> Category.objects.create(catName='Politics')
+>>> Category.objects.create(catName='Sport')
+
+>>> Post.objects.create(author=Author.objects.get(userAuthor=User.objects.get(username='Ivan')), publicationType='AR', publicationTitle='smth title', publicationText='smth text')
+>>> Post.objects.create(author=Author.objects.get(userAuthor=User.objects.get(username='Petr')), publicationType='AR', publicationTitle='smth2 title2', publicationText='smth2 text2')
+>>> Post.objects.create(author=Author.objects.get(userAuthor=User.objects.get(username='Ivan')), publicationType='NI', publicationTitle='smth3 title3', publicationText='smth3 text3')
+
+>>> p1 = Post.objects.get(publicationTitle='smth title')
+>>> p2 = Post.objects.get(publicationTitle='smth2 title2')
+>>> p3 = Post.objects.get(publicationTitle='smth3 title3')
+
+>>> c1 = Category.objects.get(catName='IT')
+>>> c2 = Category.objects.get(catName='Education')
+>>> c3 = Category.objects.get(catName='Politics')
+>>> c4 = Category.objects.get(pk=4)
+
+>>> p1.postCategory.add(c1, c2)
+>>> p2.postCategory.add(c2, c3)
+>>> p3.postCategory.add(c3, c4)
+
+>>> Comment.objects.create(commentUser=User.objects.get(username='Ivan'), commentPost=Post.objects.get(publicationTitle='smth title'), commentText='comment text1')
+>>> Comment.objects.create(commentUser=User.objects.get(username='Ivan'), commentPost=Post.objects.get(publicationTitle='smth2 title2'), commentText='comment text2')
+>>> Comment.objects.create(commentUser=User.objects.get(username='Petr'), commentPost=Post.objects.get(publicationTitle='smth3 title3'), commentText='comment text3')
+>>> Comment.objects.create(commentUser=User.objects.get(username='Petr'), commentPost=Post.objects.get(publicationTitle='smth title'), commentText='comment text4')
+
+>>> Post.objects.get(publicationTitle='smth title').like()
+>>> Post.objects.get(publicationTitle='smth title').like()
+>>> Post.objects.get(publicationTitle='smth title').like()
+>>> Post.objects.get(publicationTitle='smth2 title2').like()
+>>> Post.objects.get(publicationTitle='smth3 title3').dislike()
+>>> Post.objects.get(publicationTitle='smth3 title3').dislike()
+>>> p1.like()
+>>> p1.like()
+
+>>> Comment.objects.get(pk=1).like()
+>>> Comment.objects.get(pk=1).like()
+>>> Comment.objects.get(pk=2).like()
+>>> Comment.objects.get(pk=3).dislike()
+>>> Comment.objects.get(pk=4).dislike()
+
+>>> Author.objects.get(userAuthor=User.objects.get(username='Petr')).update_rating()
+>>> Author.objects.get(userAuthor=User.objects.get(username='Ivan')).update_rating()
+
+>>> best = Author.objects.all().order_by('-authorRanking').values('userAuthor__username', 'authorRanking')[0]
+>>> best
+
+>>> best_article = Post.objects.all().order_by('-publicationRanking').values('publicationDate', 'author__userAuthor__username', 'publicationRanking', 'publicationTitle')[0]
+>>> best_article
+
+>>> best_article_pr = Post.objects.all().order_by('-publicationRanking')[0]
+>>> best_article_pr.preview()
+
+>>> best_article_comments = Comment.objects.filter(commentPost__id = best_article_pr.id).values('commentDate', 'commentUser__username', 'commentRanking', 'commentText')
+>>> best_article_comments
